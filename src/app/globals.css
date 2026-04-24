@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-light": "#fff0f5",
+  --color-brand-pink": "#ffb6c1",
+  --color-brand-rose": "#ffc0cb",
+  --color-brand-dark": "#cc5b70",
+  --animate-heartbeat": "heartbeat 1.5s ease-in-out infinite both",
+  --animate-fade-in": "fadein 0.8s ease-out forwards"
+}
+
+/* For tailwind v4 keyframes need to be standard css, or define it with @keyframes */
+@keyframes heartbeat {
+  from {
+    transform: scale(1);
+    transform-origin: center center;
+    animation-timing-function: ease-out;
+  }
+  10% {
+    transform: scale(0.91);
+    animation-timing-function: ease-in;
+  }
+  17% {
+    transform: scale(0.98);
+    animation-timing-function: ease-out;
+  }
+  33% {
+    transform: scale(0.87);
+    animation-timing-function: ease-in;
+  }
+  45% {
+    transform: scale(1);
+    animation-timing-function: ease-out;
+  }
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+body {
+  background-color: var(--color-brand-light);
+  color: #3e2723;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+::selection {
+  background-color: var(--color-brand-pink);
+  color: white;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-brand-light);
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-brand-pink);
+  border-radius: 10px;
+}
