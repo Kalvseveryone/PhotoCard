@@ -17,6 +17,18 @@ const PhotoSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  type: {
+    type: String,
+    enum: ['gallery', 'story'],
+    default: 'gallery',
+  },
+  album: {
+    type: String,
+    default: 'All Memories',
+  },
+  expiredAt: {
+    type: Date,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

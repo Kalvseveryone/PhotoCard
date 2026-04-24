@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import PhotoCard from './PhotoCard';
 import UploadModal from './UploadModal';
-import { ImagePlus, Heart, Home } from 'lucide-react';
+import { ImagePlus, Heart, Home, Clock } from 'lucide-react';
 import Link from 'next/link';
 
 export default function GalleryClient({ pageType = 'home' }) {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isUploadModalOpen, setUploadModalOpen] = useState(false);
+  const [selectedAlbum, setSelectedAlbum] = useState('Semua'); // Default view
 
   useEffect(() => {
     const fetchPhotos = async () => {
@@ -46,9 +47,8 @@ export default function GalleryClient({ pageType = 'home' }) {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this memory?')) return;
+    if (!confirm('Hapus kenangan ini?')) return;
     
-    // optimistic
     const prev = [...photos];
     setPhotos(photos.filter(p => p._id !== id));
     try {
@@ -61,46 +61,84 @@ export default function GalleryClient({ pageType = 'home' }) {
   };
 
   const handleUploadSuccess = (newPhoto) => {
+    // Jika type = story, tidak perlu masuk ke grid gallery kita
+    if (newPhoto.type === 'story') {
+       alert("Story berhasil dipublikasikan! Silakan buka halaman Story.");
+       return;
+    }
     setPhotos([newPhoto, ...photos]);
   };
 
-  // Filter if we're on the favorites page
-  const displayedPhotos = pageType === 'favorites' ? photos.filter(p => p.isFavorite) : photos;
+  // Derive unique albums
+  const uniqueAlbums = [...new Set(photos.filter(p => p.album).map(p => p.album))];
+  const albumTabs = ['Semua', ...uniqueAlbums];
+
+  // Filter based on pageType & Album
+  const displayedPhotos = photos.filter(p => {
+    if (pageType === 'favorites' && !p.isFavorite) return false;
+    if (selectedAlbum !== 'Semua' && p.album !== selectedAlbum) return false;
+    return true;
+  });
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* Header section inside client to handle modal */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
+    <div className="max-w-6xl mx-auto px-4 py-8 relative">
+      {/* Header section */}
+      <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
         <div className="text-center md:text-left">
           <h1 className="text-4xl md:text-5xl font-serif text-brand-dark mb-2">
-            {pageType === 'favorites' ? 'Our Favorites' : 'Our Infinite Memories'}
+            {pageType === 'favorites' ? 'Our Favorites' : 'Infinite Memories'}
           </h1>
           <p className="text-brand-dark/70 text-lg">Every picture tells a story of us.</p>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          <Link href="/story" className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-orange-400 via-red-400 to-brand-dark text-white rounded-full shadow-md hover:shadow-lg transition-transform hover:scale-105">
+            <Clock size={18} />
+            <span>Story 24 Jam</span>
+          </Link>
+
           {pageType === 'home' ? (
-            <Link href="/favorites" className="flex items-center gap-2 px-6 py-3 bg-white text-brand-dark rounded-full shadow-sm hover:shadow-md hover:bg-brand-light transition-all">
+            <Link href="/favorites" className="flex items-center gap-2 px-5 py-3 bg-white text-brand-dark rounded-full shadow-sm hover:shadow-md hover:bg-brand-light transition-all">
               <Heart size={18} />
               <span>Favorites</span>
             </Link>
           ) : (
-            <Link href="/" className="flex items-center gap-2 px-6 py-3 bg-white text-brand-dark rounded-full shadow-sm hover:shadow-md hover:bg-brand-light transition-all">
+            <Link href="/" className="flex items-center gap-2 px-5 py-3 bg-white text-brand-dark rounded-full shadow-sm hover:shadow-md hover:bg-brand-light transition-all">
               <Home size={18} />
-              <span>Home</span>
+              <span>Home Gallery</span>
             </Link>
           )}
 
           <button 
             onClick={() => setUploadModalOpen(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-brand-dark text-white rounded-full shadow-md hover:bg-opacity-90 transition-all hover:scale-105 active:scale-95"
+            className="flex items-center gap-2 px-5 py-3 bg-brand-dark text-white rounded-full shadow-md hover:bg-opacity-90 transition-all hover:-translate-y-1"
           >
             <ImagePlus size={18} />
-            <span>New Memory</span>
+            <span>Upload Info</span>
           </button>
         </div>
       </div>
 
+      {/* Album Navigation - Hide on Favorites to keep it simple, or keep it depending on preference. Keeping it is nice. */}
+      {photos.length > 0 && (
+        <div className="flex items-center gap-3 overflow-x-auto pb-4 mb-8 no-scrollbar scroll-smooth">
+          {albumTabs.map(album => (
+            <button
+              key={album}
+              onClick={() => setSelectedAlbum(album)}
+              className={`px-5 py-2 whitespace-nowrap rounded-full text-sm font-medium transition-all duration-300 ${
+                selectedAlbum === album 
+                  ? 'bg-brand-dark text-white shadow-md' 
+                  : 'bg-white/60 text-brand-dark/70 hover:bg-white hover:text-brand-dark hover:shadow'
+              }`}
+            >
+              {album}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Gallery Grid */}
       {loading ? (
         <div className="flex justify-center items-center py-32">
           <Heart className="text-brand-pink animate-heartbeat" size={48} />
@@ -112,7 +150,7 @@ export default function GalleryClient({ pageType = 'home' }) {
               <div className="bg-white/50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 grayscale opacity-50">
                 <ImagePlus size={32} />
               </div>
-              <p>No memories found here.</p>
+              <p>Belum ada memori di album ini.</p>
             </div>
           ) : (
             <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">

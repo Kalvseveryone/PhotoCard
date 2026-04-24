@@ -9,6 +9,8 @@ export async function POST(request) {
     const formData = await request.formData();
     const file = formData.get('file');
     const caption = formData.get('caption') || '';
+    const type = formData.get('type') || 'gallery';
+    const album = formData.get('album') || 'All Memories';
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -25,11 +27,20 @@ export async function POST(request) {
       folder: 'romantic_album',
     });
 
+    // Handle 24 Hour Expiry Logic
+    let expiredAt = undefined;
+    if (type === 'story') {
+      expiredAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 Hours later
+    }
+
     // Save to DB
     const newPhoto = await Photo.create({
       url: uploadResponse.secure_url,
       public_id: uploadResponse.public_id,
       caption: caption,
+      type: type,
+      album: type === 'story' ? undefined : album, // Story doesn't need album categorization
+      expiredAt: expiredAt,
     });
 
     return NextResponse.json({ success: true, photo: newPhoto }, { status: 201 });
