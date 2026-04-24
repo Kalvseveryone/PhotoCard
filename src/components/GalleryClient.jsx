@@ -16,9 +16,9 @@ export default function GalleryClient({ pageType = 'home' }) {
   // Set initial zoom based on screen size
   useEffect(() => {
     if (window.innerWidth < 640) {
-      setZoomLevel(1);
-    } else if (window.innerWidth < 1024) {
       setZoomLevel(2);
+    } else if (window.innerWidth < 1024) {
+      setZoomLevel(3);
     }
   }, []);
 

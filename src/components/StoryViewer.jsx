@@ -26,6 +26,28 @@ function CountdownTimer({ expiredAt, onExpire }) {
   return <span className="text-xs px-3 py-1 bg-black/60 text-white rounded-full backdrop-blur-sm">{timeLeft}</span>;
 }
 
+function TimeAgo({ createdAt }) {
+  const [timeStr, setTimeStr] = useState('');
+
+  useEffect(() => {
+    const calculate = () => {
+      if (!createdAt) return '';
+      const diff = new Date() - new Date(createdAt);
+      const minutes = Math.floor(diff / 60000);
+      const hours = Math.floor(minutes / 60);
+
+      if (hours > 0) return `${hours} jam lalu`;
+      if (minutes > 0) return `${minutes} mnt lalu`;
+      return 'Baru saja';
+    };
+    setTimeStr(calculate());
+    const intv = setInterval(() => setTimeStr(calculate()), 60000);
+    return () => clearInterval(intv);
+  }, [createdAt]);
+
+  return <span className="text-[10px] sm:text-xs text-gray-500 font-medium tracking-wide mt-1">{timeStr}</span>;
+}
+
 export default function StoryViewer({ compact = false }) {
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -96,7 +118,9 @@ export default function StoryViewer({ compact = false }) {
                   className="w-full h-full object-cover rounded-full border-2 border-white"
                 />
               </button>
-              {!compact && (
+              {compact ? (
+                <TimeAgo createdAt={story.createdAt} />
+              ) : (
                 <CountdownTimer 
                   expiredAt={story.expiredAt} 
                   onExpire={() => setStories(prev => prev.filter(s => s._id !== story._id))} 
