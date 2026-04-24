@@ -28,13 +28,53 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
 
   if (!isOpen) return null;
 
-  const handleFileChange = (e) => {
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        const img = new Image();
+        img.src = reader.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          // Max dimension 1920px untuk galeri kualitas tinggi namun tetap ringan
+          const MAX = 1920;
+          let width = img.width;
+          let height = img.height;
+          if (width > MAX || height > MAX) {
+            if (width > height) {
+              height = Math.round((height *= MAX / width));
+              width = MAX;
+            } else {
+              width = Math.round((width *= MAX / height));
+              height = MAX;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          // Menggambar ke canvas 2D otomatis membuang gain-map HDR (menormalisasikan iPhone HDR dsb ke SDR)
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          canvas.toBlob((blob) => {
+            const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+            resolve({ processedFile: newFile, previewUrl: canvas.toDataURL('image/jpeg', 0.8) });
+          }, 'image/jpeg', 0.85); // 85% JPEG Quality
+        };
+      };
+    });
+  };
+
+  const handleFileChange = async (e) => {
     const selected = e.target.files[0];
     if (selected) {
-      setFile(selected);
-      const reader = new FileReader();
-      reader.onloadend = () => setPreview(reader.result);
-      reader.readAsDataURL(selected);
+      // Tampilkan state loading atau langsung proses jika HP cepat
+      const { processedFile, previewUrl } = await compressImage(selected);
+      setFile(processedFile);
+      setPreview(previewUrl);
     }
   };
 
