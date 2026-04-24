@@ -1,15 +1,14 @@
 import GalleryClient from '@/components/GalleryClient';
 
 export const metadata = {
-  title: 'Our Infinity Memories',
-  description: 'A romantic photo album for us.',
+  title: 'Gallery - KalUpdateApp',
+  description: 'Minimalist Photo Gallery',
 };
 
 export default function Home() {
   return (
-    <main className="min-h-screen pb-20 relative">
-      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-brand-pink/30 to-transparent pointer-events-none z-[-1]" />
+    <div className="pb-20">
       <GalleryClient pageType="home" />
-    </main>
+    </div>
   );
 }

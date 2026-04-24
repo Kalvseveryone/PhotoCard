@@ -1,15 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-light: #fff0f5;
-  --color-brand-pink: #ffb6c1;
-  --color-brand-rose: #ffc0cb;
-  --color-brand-dark: #cc5b70;
   --animate-heartbeat: heartbeat 1.5s ease-in-out infinite both;
   --animate-fade-in: fadein 0.8s ease-out forwards;
 }
 
-/* For tailwind v4 keyframes need to be standard css, or define it with @keyframes */
 @keyframes heartbeat {
   from {
     transform: scale(1);
@@ -46,15 +41,15 @@
 }
 
 body {
-  background-color: var(--color-brand-light);
-  color: #3e2723;
+  background-color: #ffffff;
+  color: #000000;
   margin: 0;
   padding: 0;
   font-family: system-ui, -apple-system, sans-serif;
 }
 
 ::selection {
-  background-color: var(--color-brand-pink);
+  background-color: #333333;
   color: white;
 }
 
@@ -62,9 +57,21 @@ body {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-brand-light);
+  background: #f9fafb;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: var(--color-brand-pink);
+  background-color: #c1c1c1;
   border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #a1a1a1;
+}
+
+/* Base utility for hiding scrollbars on specific containers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }

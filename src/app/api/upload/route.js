@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import cloudinary from '@/lib/cloudinary';
 import dbConnect from '@/lib/db';
 import Photo from '@/models/Photo';
+import Album from '@/models/Album';
 
 export async function POST(request) {
   try {
@@ -10,7 +11,7 @@ export async function POST(request) {
     const file = formData.get('file');
     const caption = formData.get('caption') || '';
     const type = formData.get('type') || 'gallery';
-    const album = formData.get('album') || 'All Memories';
+    const rawAlbumName = formData.get('album') || 'Tanpa Album';
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -33,19 +34,33 @@ export async function POST(request) {
       expiredAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 Hours later
     }
 
+    // Resolusi Relasi DB Album (Otomatis Buat Baru Bila Tidak Ditemukan)
+    let resolvedAlbumId = undefined;
+    if (type === 'gallery') {
+      const cleanName = rawAlbumName.trim() || 'Tanpa Album';
+      // Case insensitive check
+      let albumDoc = await Album.findOne({ name: { $regex: new RegExp(`^${cleanName.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i') } });
+      if (!albumDoc) {
+        albumDoc = await Album.create({ name: cleanName });
+      }
+      resolvedAlbumId = albumDoc._id;
+    }
+
     // Save to DB
-    const newPhoto = await Photo.create({
+    const newPhotoObj = await Photo.create({
       url: uploadResponse.secure_url,
       public_id: uploadResponse.public_id,
       caption: caption,
       type: type,
-      album: type === 'story' ? undefined : album, // Story doesn't need album categorization
+      albumId: resolvedAlbumId,
       expiredAt: expiredAt,
     });
 
-    return NextResponse.json({ success: true, photo: newPhoto }, { status: 201 });
+    const populatedPhoto = await Photo.findById(newPhotoObj._id).populate('albumId');
+
+    return NextResponse.json({ success: true, photo: populatedPhoto || newPhotoObj }, { status: 201 });
   } catch (error) {
     console.error('Upload Error:', error);
-    return NextResponse.json({ error: 'Failed to upload photo' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to upload photo' }, { status: 500 });
   }
 }

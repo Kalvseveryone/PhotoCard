@@ -3,14 +3,23 @@
 import { useState, useEffect } from 'react';
 import PhotoCard from './PhotoCard';
 import UploadModal from './UploadModal';
-import { ImagePlus, Heart, Home, Clock } from 'lucide-react';
-import Link from 'next/link';
+import { ImagePlus, ZoomIn, ZoomOut } from 'lucide-react';
 
 export default function GalleryClient({ pageType = 'home' }) {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isUploadModalOpen, setUploadModalOpen] = useState(false);
-  const [selectedAlbum, setSelectedAlbum] = useState('Semua'); // Default view
+  const [selectedAlbum, setSelectedAlbum] = useState('Semua'); 
+  const [zoomLevel, setZoomLevel] = useState(3);
+
+  // Set initial zoom based on screen size so mobile isn't clamped
+  useEffect(() => {
+    if (window.innerWidth < 640) {
+      setZoomLevel(1);
+    } else if (window.innerWidth < 1024) {
+      setZoomLevel(2);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchPhotos = async () => {
@@ -30,9 +39,7 @@ export default function GalleryClient({ pageType = 'home' }) {
   }, []);
 
   const handleToggleFavorite = async (id, currentStatus) => {
-    // optimistic update
     setPhotos(photos.map(p => p._id === id ? { ...p, isFavorite: !currentStatus } : p));
-
     try {
       await fetch(`/api/photos/${id}`, {
         method: 'PATCH',
@@ -40,28 +47,23 @@ export default function GalleryClient({ pageType = 'home' }) {
         body: JSON.stringify({ isFavorite: !currentStatus })
       });
     } catch (err) {
-      console.error(err);
-      // fallback
       setPhotos(photos.map(p => p._id === id ? { ...p, isFavorite: currentStatus } : p));
     }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Hapus kenangan ini?')) return;
-    
+    if (!confirm('Hapus kenangan ini secara permanen?')) return;
     const prev = [...photos];
     setPhotos(photos.filter(p => p._id !== id));
     try {
       const res = await fetch(`/api/photos/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Delete failed');
     } catch (err) {
-      console.error(err);
       setPhotos(prev);
     }
   };
 
   const handleUploadSuccess = (newPhoto) => {
-    // Jika type = story, tidak perlu masuk ke grid gallery kita
     if (newPhoto.type === 'story') {
        alert("Story berhasil dipublikasikan! Silakan buka halaman Story.");
        return;
@@ -69,91 +71,90 @@ export default function GalleryClient({ pageType = 'home' }) {
     setPhotos([newPhoto, ...photos]);
   };
 
-  // Derive unique albums
-  const uniqueAlbums = [...new Set(photos.filter(p => p.album).map(p => p.album))];
-  const albumTabs = ['Semua', ...uniqueAlbums];
+  const handleZoomIn = () => setZoomLevel(prev => Math.max(1, prev - 1));
+  const handleZoomOut = () => setZoomLevel(prev => Math.min(5, prev + 1));
 
-  // Filter based on pageType & Album
+  const uniqueAlbums = [...new Set(photos.map(p => {
+    if (p.albumId && p.albumId.name) return p.albumId.name;
+    if (p.album) return p.album;
+    return 'Tanpa Album';
+  }))];
+  
+  const albumTabs = ['Semua', ...uniqueAlbums.filter(Boolean)];
+
   const displayedPhotos = photos.filter(p => {
+    const pAlbumName = p.albumId && p.albumId.name ? p.albumId.name : (p.album || 'Tanpa Album');
     if (pageType === 'favorites' && !p.isFavorite) return false;
-    if (selectedAlbum !== 'Semua' && p.album !== selectedAlbum) return false;
+    if (selectedAlbum !== 'Semua' && pAlbumName !== selectedAlbum) return false;
     return true;
   });
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 relative">
-      {/* Header section */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
-        <div className="text-center md:text-left">
-          <h1 className="text-4xl md:text-5xl font-serif text-brand-dark mb-2">
-            {pageType === 'favorites' ? 'Our Favorites' : 'Infinite Memories'}
-          </h1>
-          <p className="text-brand-dark/70 text-lg">Every picture tells a story of us.</p>
-        </div>
-        
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          <Link href="/story" className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-orange-400 via-red-400 to-brand-dark text-white rounded-full shadow-md hover:shadow-lg transition-transform hover:scale-105">
-            <Clock size={18} />
-            <span>Story 24 Jam</span>
-          </Link>
-
-          {pageType === 'home' ? (
-            <Link href="/favorites" className="flex items-center gap-2 px-5 py-3 bg-white text-brand-dark rounded-full shadow-sm hover:shadow-md hover:bg-brand-light transition-all">
-              <Heart size={18} />
-              <span>Favorites</span>
-            </Link>
-          ) : (
-            <Link href="/" className="flex items-center gap-2 px-5 py-3 bg-white text-brand-dark rounded-full shadow-sm hover:shadow-md hover:bg-brand-light transition-all">
-              <Home size={18} />
-              <span>Home Gallery</span>
-            </Link>
-          )}
-
-          <button 
-            onClick={() => setUploadModalOpen(true)}
-            className="flex items-center gap-2 px-5 py-3 bg-brand-dark text-white rounded-full shadow-md hover:bg-opacity-90 transition-all hover:-translate-y-1"
-          >
-            <ImagePlus size={18} />
-            <span>Upload Info</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Album Navigation - Hide on Favorites to keep it simple, or keep it depending on preference. Keeping it is nice. */}
-      {photos.length > 0 && (
-        <div className="flex items-center gap-3 overflow-x-auto pb-4 mb-8 no-scrollbar scroll-smooth">
+      <div className="flex flex-col xl:flex-row justify-between xl:items-end mb-6 gap-6 border-b border-gray-100 pb-4">
+        {/* Album Navigation */}
+        <div className="flex items-center gap-2 overflow-x-auto w-full no-scrollbar pb-2 xl:pb-0">
           {albumTabs.map(album => (
             <button
               key={album}
               onClick={() => setSelectedAlbum(album)}
-              className={`px-5 py-2 whitespace-nowrap rounded-full text-sm font-medium transition-all duration-300 ${
+              className={`px-4 py-2 whitespace-nowrap rounded-md text-[10px] sm:text-xs uppercase tracking-widest font-bold transition-all duration-300 ${
                 selectedAlbum === album 
-                  ? 'bg-brand-dark text-white shadow-md' 
-                  : 'bg-white/60 text-brand-dark/70 hover:bg-white hover:text-brand-dark hover:shadow'
+                  ? 'bg-black text-white shadow-sm' 
+                  : 'bg-gray-50 text-gray-500 hover:text-black hover:bg-gray-100'
               }`}
             >
               {album}
             </button>
           ))}
         </div>
-      )}
+        
+        <div className="flex items-center justify-between xl:justify-end gap-4 shrink-0 w-full xl:w-auto">
+          <div className="flex items-center bg-gray-50 rounded-lg p-1.5 border border-gray-100">
+            <button 
+              onClick={handleZoomIn} disabled={zoomLevel <= 1}
+              className="p-1 sm:p-1.5 rounded text-gray-500 hover:bg-white hover:text-black hover:shadow-sm transition-all disabled:opacity-30"
+              title="Perbesar"
+            >
+              <ZoomIn size={16} />
+            </button>
+            <span className="w-6 sm:w-8 text-center text-xs font-bold text-black">{zoomLevel}</span>
+            <button 
+              onClick={handleZoomOut} disabled={zoomLevel >= 5}
+              className="p-1 sm:p-1.5 rounded text-gray-500 hover:bg-white hover:text-black hover:shadow-sm transition-all disabled:opacity-30"
+              title="Perkecil"
+            >
+              <ZoomOut size={16} />
+            </button>
+          </div>
+          <button 
+            onClick={() => setUploadModalOpen(true)}
+            className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 bg-black text-white rounded-lg text-xs sm:text-sm font-bold shadow-sm hover:bg-gray-800 transition-colors"
+          >
+            <ImagePlus size={16} />
+            <span>Upload</span>
+          </button>
+        </div>
+      </div>
 
-      {/* Gallery Grid */}
       {loading ? (
-        <div className="flex justify-center items-center py-32">
-          <Heart className="text-brand-pink animate-heartbeat" size={48} />
+        <div className="flex justify-center items-center py-32 text-gray-400 font-mono text-xs sm:text-sm uppercase tracking-widest animate-pulse">
+          Loading Data...
         </div>
       ) : (
         <>
           {displayedPhotos.length === 0 ? (
-            <div className="text-center py-32 text-brand-dark/50 font-medium">
-              <div className="bg-white/50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 grayscale opacity-50">
-                <ImagePlus size={32} />
+            <div className="text-center py-32 text-gray-400 font-medium">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 border-gray-200 flex items-center justify-center mx-auto mb-4">
+                <ImagePlus size={20} className="text-gray-300" />
               </div>
-              <p>Belum ada memori di album ini.</p>
+              <p className="text-xs sm:text-sm uppercase tracking-wide">No Photos Found</p>
             </div>
           ) : (
-            <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+            <div 
+              className="gap-4 space-y-4 transition-all duration-700 ease-in-out" 
+              style={{ columnCount: zoomLevel }}
+            >
               {displayedPhotos.map(photo => (
                 <PhotoCard 
                   key={photo._id} 

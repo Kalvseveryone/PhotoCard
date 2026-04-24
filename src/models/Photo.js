@@ -1,5 +1,8 @@
 import mongoose from 'mongoose';
 
+// Note: Ensure Album model is loaded so populate works
+import './Album';
+
 const PhotoSchema = new mongoose.Schema({
   url: {
     type: String,
@@ -22,9 +25,9 @@ const PhotoSchema = new mongoose.Schema({
     enum: ['gallery', 'story'],
     default: 'gallery',
   },
-  album: {
-    type: String,
-    default: 'All Memories',
+  albumId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Album',
   },
   expiredAt: {
     type: Date,

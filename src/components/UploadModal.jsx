@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Upload, X, Image as ImageIcon, LayoutGrid, Clock } from 'lucide-react';
 
 export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
@@ -11,6 +11,20 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   const [albumName, setAlbumName] = useState('');
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
+
+  const [albums, setAlbums] = useState([]);
+  const [showAlbumList, setShowAlbumList] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetch('/api/albums')
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) setAlbums(data.albums);
+        })
+        .catch(console.error);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -36,7 +50,7 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
       formData.append('type', uploadType);
       
       if (uploadType === 'gallery') {
-        formData.append('album', albumName || 'Tanpa Album');
+        formData.append('album', albumName.trim() || 'Tanpa Album');
       }
 
       const res = await fetch('/api/upload', {
@@ -60,106 +74,90 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   };
 
   const handleClose = () => {
-    setFile(null);
-    setPreview(null);
-    setCaption('');
-    setUploadType('gallery');
-    setAlbumName('');
+    setFile(null); setPreview(null); setCaption('');
+    setUploadType('gallery'); setAlbumName(''); setShowAlbumList(false);
     onClose();
   };
 
+  // Filter datalist dropdown purely visual logic
+  const filteredAlbums = albums.filter(a => a.name.toLowerCase().includes(albumName.toLowerCase()));
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl relative border border-gray-100">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-serif text-brand-dark">New Memory</h2>
-            <button onClick={handleClose} className="p-2 bg-brand-light rounded-full text-brand-dark hover:bg-brand-pink hover:text-white transition-colors">
+            <h2 className="text-xl font-bold tracking-tight text-black">New Upload</h2>
+            <button onClick={handleClose} className="p-2 bg-gray-100 rounded-full text-black hover:bg-gray-200 transition-colors">
               <X size={20} />
             </button>
           </div>
           
           <form onSubmit={handleUpload} className="space-y-6">
-            {/* TABS TYPE SELECTION */}
             <div className="flex bg-gray-100 p-1 rounded-xl">
-              <button
-                type="button"
-                onClick={() => setUploadType('gallery')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${uploadType === 'gallery' ? 'bg-white shadow relative text-brand-dark' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                <LayoutGrid size={16} /> Album Permanen
+              <button type="button" onClick={() => setUploadType('gallery')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${uploadType === 'gallery' ? 'bg-white shadow text-black' : 'text-gray-500 hover:text-black'}`}>
+                <LayoutGrid size={16} /> Gallery
               </button>
-              <button
-                type="button"
-                onClick={() => setUploadType('story')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${uploadType === 'story' ? 'bg-white shadow relative text-brand-dark' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                <Clock size={16} /> Story (24 Jam)
+              <button type="button" onClick={() => setUploadType('story')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${uploadType === 'story' ? 'bg-white shadow text-black' : 'text-gray-500 hover:text-black'}`}>
+                <Clock size={16} /> 24h Story
               </button>
             </div>
 
-            <div 
-              onClick={() => fileInputRef.current.click()}
-              className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-colors ${preview ? 'border-brand-pink bg-brand-light/50' : 'border-gray-300 hover:border-brand-dark hover:bg-brand-light'}`}
-            >
+            <div onClick={() => fileInputRef.current.click()} className={`border border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${preview ? 'border-gray-800 bg-gray-50' : 'border-gray-300 hover:border-black hover:bg-gray-50'}`}>
               {preview ? (
-                <div className="relative aspect-square w-full rounded-xl overflow-hidden">
-                  <img src={preview} alt="Preview" className="object-cover w-full h-full" />
+                <div className="relative aspect-video w-full rounded-lg overflow-hidden flex items-center justify-center bg-black">
+                  <img src={preview} alt="Preview" className="object-cover h-full" />
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-6 space-y-3">
-                  <div className="p-4 bg-brand-light rounded-full text-brand-dark">
-                    <ImageIcon size={32} />
+                  <div className="p-3 bg-gray-100 rounded-full text-black">
+                    <ImageIcon size={24} />
                   </div>
-                  <p className="font-medium text-gray-600">Pilih Foto</p>
+                  <p className="text-sm font-medium text-gray-900">Select an image</p>
                 </div>
               )}
             </div>
-            <input 
-              type="file" 
-              accept="image/*" 
-              className="hidden" 
-              ref={fileInputRef} 
-              onChange={handleFileChange} 
-            />
+            <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
 
             {uploadType === 'gallery' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Album (Klasifikasi)</label>
+              <div className="relative">
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Album Classification</label>
                 <input 
                   type="text" 
                   value={albumName} 
-                  onChange={(e) => setAlbumName(e.target.value)} 
-                  className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:border-transparent"
-                  placeholder="Misal: Bali 2026, Anniversary..."
+                  onChange={(e) => {
+                    setAlbumName(e.target.value);
+                    setShowAlbumList(true);
+                  }}
+                  onFocus={() => setShowAlbumList(true)}
+                  className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-black focus:border-black"
+                  placeholder="Type to search or create new album..."
                 />
+                {showAlbumList && albumName !== '' && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                    {filteredAlbums.length > 0 ? (
+                       filteredAlbums.map(alb => (
+                         <div key={alb._id} className="p-3 text-sm hover:bg-gray-100 cursor-pointer" onClick={() => { setAlbumName(alb.name); setShowAlbumList(false); }}>
+                           {alb.name}
+                         </div>
+                       ))
+                    ) : (
+                       <div className="p-3 text-sm text-gray-500 italic">
+                         Press upload to create new album "{albumName}"
+                       </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Catatan manis (opsional)</label>
-              <textarea 
-                rows="2" 
-                value={caption} 
-                onChange={(e) => setCaption(e.target.value)} 
-                className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:border-transparent resize-none"
-                placeholder="What a beautiful day..."
-              />
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Caption (Optional)</label>
+              <textarea rows="2" value={caption} onChange={(e) => setCaption(e.target.value)} className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-black focus:border-black resize-none" placeholder="Write something..." />
             </div>
 
-            <button 
-              type="submit" 
-              disabled={!file || uploading} 
-              className="w-full flex items-center justify-center gap-2 bg-brand-dark text-white py-3 rounded-xl font-medium hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {uploading ? (
-                <span>Mengirim...</span>
-              ) : (
-                <>
-                  <Upload size={18} />
-                  <span>{uploadType === 'story' ? 'Posting ke Story' : 'Simpan ke Galeri'}</span>
-                </>
-              )}
+            <button type="submit" disabled={!file || uploading} className="w-full flex items-center justify-center gap-2 bg-black text-white hover:bg-gray-800 py-3 rounded-lg text-sm font-bold tracking-wide transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+              {uploading ? <span>Uploading...</span> : <><Upload size={16} /> <span>{uploadType === 'story' ? 'Post to Story' : 'Upload File'}</span></>}
             </button>
           </form>
         </div>

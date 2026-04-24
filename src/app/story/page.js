@@ -1,14 +1,14 @@
 import StoryViewer from '@/components/StoryViewer';
 
 export const metadata = {
-  title: 'Our Stories - 24 Hours',
-  description: 'Momentary flashes of our beautiful journey.',
+  title: 'Live Stories - KalUpdateApp',
+  description: 'View 24h stories.',
 };
 
 export default function StoryPage() {
   return (
-    <main className="min-h-screen bg-[#fff0f5]">
+    <div className="bg-white min-h-[calc(100vh-64px)]">
       <StoryViewer />
-    </main>
+    </div>
   );
 }

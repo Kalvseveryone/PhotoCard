@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Photo from '@/models/Photo';
+import '@/models/Album'; // Register Album model to avoid MissingSchemaError
 
 export const dynamic = 'force-dynamic';
 
@@ -8,7 +9,9 @@ export async function GET() {
   try {
     await dbConnect();
     // Only return gallery items historically or newly added (skip 'story' items)
-    const photos = await Photo.find({ type: { $ne: 'story' } }).sort({ createdAt: -1 });
+    const photos = await Photo.find({ type: { $ne: 'story' } })
+                              .populate('albumId')
+                              .sort({ createdAt: -1 });
     return NextResponse.json({ success: true, photos }, { status: 200 });
   } catch (error) {
     console.error('Get Photos Error:', error);

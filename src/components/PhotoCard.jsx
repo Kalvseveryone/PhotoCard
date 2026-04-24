@@ -3,42 +3,51 @@
 import { Heart, Trash2 } from 'lucide-react';
 
 export default function PhotoCard({ photo, onToggleFavorite, onDelete }) {
+  // Extract album name gracefully
+  const albumName = photo.albumId && photo.albumId.name ? photo.albumId.name : (photo.album || null);
+
   return (
-    <div className="group relative bg-white p-3 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-2 animate-fade-in break-inside-avoid mb-6">
-      <div className="relative rounded-lg overflow-hidden flex justify-center bg-gray-50 aspect-square sm:aspect-auto">
+    <div className="group relative bg-white border border-gray-100 rounded-sm mb-4 break-inside-avoid overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 animate-fade-in">
+      <div className="relative overflow-hidden bg-gray-50 flex justify-center aspect-[4/5]">
         <img 
           src={photo.url} 
-          alt={photo.caption || 'Romantic memory'} 
-          className="w-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-500 max-h-[500px]"
+          alt={photo.caption || 'Memory'} 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           loading="lazy"
         />
         
         {/* Actions overlay */}
-        <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button 
             onClick={() => onToggleFavorite(photo._id, photo.isFavorite)}
-            className={`p-2 rounded-full shadow-md transition-transform hover:scale-110 active:scale-95 ${photo.isFavorite ? 'bg-white text-red-500' : 'bg-black/50 text-white hover:bg-white hover:text-red-500'}`}
+            className={`p-2 rounded-full shadow-md transition-all hover:scale-110 active:scale-95 ${photo.isFavorite ? 'bg-black text-red-500' : 'bg-white/90 text-gray-600 hover:text-black'}`}
           >
-            <Heart size={20} className={photo.isFavorite ? 'fill-current animate-heartbeat' : ''} />
+            <Heart size={16} className={photo.isFavorite ? 'fill-current animate-heartbeat' : ''} />
           </button>
           <button 
             onClick={() => onDelete(photo._id)}
-            className="p-2 rounded-full bg-black/50 text-white shadow-md hover:bg-red-500 transition-transform hover:scale-110 active:scale-95"
+            className="p-2 rounded-full bg-white/90 text-gray-600 shadow-md hover:bg-red-50 hover:text-red-600 transition-all hover:scale-110 active:scale-95"
+            title="Hapus Memo"
           >
-            <Trash2 size={20} />
+            <Trash2 size={16} />
           </button>
         </div>
       </div>
       
-      {(photo.caption || photo.createdAt) && (
-        <div className="mt-4 px-2 pb-2">
-          {photo.caption && (
-            <p className="text-gray-800 font-serif text-lg leading-relaxed">{photo.caption}</p>
+      {(photo.caption || albumName || photo.createdAt) && (
+        <div className="p-4 bg-white border-t border-gray-50">
+          {albumName && (
+            <span className="inline-block px-2 py-1 bg-gray-100 text-gray-500 text-[10px] font-bold uppercase tracking-wider rounded mb-2">
+              {albumName}
+            </span>
           )}
-          <p className="text-xs text-gray-400 mt-2 font-mono">
+          {photo.caption && (
+            <p className="text-black text-sm leading-relaxed mb-2">{photo.caption}</p>
+          )}
+          <p className="text-[11px] text-gray-400">
             {new Date(photo.createdAt).toLocaleDateString('en-US', {
               year: 'numeric',
-              month: 'short',
+              month: 'long',
               day: 'numeric'
             })}
           </p>
