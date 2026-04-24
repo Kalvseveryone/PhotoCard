@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-light": "#fff0f5",
-  --color-brand-pink": "#ffb6c1",
-  --color-brand-rose": "#ffc0cb",
-  --color-brand-dark": "#cc5b70",
-  --animate-heartbeat": "heartbeat 1.5s ease-in-out infinite both",
-  --animate-fade-in": "fadein 0.8s ease-out forwards"
+  --color-brand-light: #fff0f5;
+  --color-brand-pink: #ffb6c1;
+  --color-brand-rose: #ffc0cb;
+  --color-brand-dark: #cc5b70;
+  --animate-heartbeat: heartbeat 1.5s ease-in-out infinite both;
+  --animate-fade-in: fadein 0.8s ease-out forwards;
 }
 
 /* For tailwind v4 keyframes need to be standard css, or define it with @keyframes */
