@@ -286,7 +286,7 @@ export default function ChatClient() {
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder="Ketik pesan..."
-                  className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:border-black focus:bg-white transition-all"
+                  className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2.5 text-[16px] md:text-sm focus:outline-none focus:border-black focus:bg-white transition-all"
                   maxLength={500}
                 />
                 <button 

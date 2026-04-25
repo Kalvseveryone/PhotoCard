@@ -467,7 +467,7 @@ export default function GalleryClient({ pageType = 'home' }) {
                          placeholder="Tambahkan komentar..."
                          value={commentText}
                          onChange={(e) => setCommentText(e.target.value)}
-                         className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-3 pr-12 outline-none focus:border-black focus:bg-white transition-all resize-none h-[80px]"
+                         className="w-full text-[16px] md:text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-3 pr-12 outline-none focus:border-black focus:bg-white transition-all resize-none h-[80px]"
                          maxLength={200}
                          onKeyDown={(e) => {
                            if (e.key === 'Enter' && !e.shiftKey) {
