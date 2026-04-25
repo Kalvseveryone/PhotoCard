@@ -194,7 +194,7 @@ export default function ChatClient() {
                       </span>
                     </div>
                     <p className="text-xs text-gray-500 truncate">
-                      {lastMsg ? (lastMsg.senderId === currentUser?._id ? `Anda: ${lastMsg.text}` : lastMsg.text) : 'Mulai obrolan'}
+                      {lastMsg ? (lastMsg.senderId === (currentUser?._id || currentUser?.id) ? `Anda: ${lastMsg.text}` : lastMsg.text) : 'Mulai obrolan'}
                     </p>
                   </div>
                 </div>
@@ -242,7 +242,7 @@ export default function ChatClient() {
                 <div className="flex justify-center p-4"><div className="animate-spin w-6 h-6 border-2 border-gray-300 border-t-black rounded-full"></div></div>
               ) : (
                 messages.map((msg, idx) => {
-                  const isMine = msg.senderId === currentUser?._id;
+                  const isMine = msg.senderId === (currentUser?._id || currentUser?.id);
                   
                   return (
                     <div key={msg._id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
