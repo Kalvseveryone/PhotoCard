@@ -33,6 +33,7 @@ export default function GalleryClient({ pageType = 'home' }) {
   const [selectedAlbum, setSelectedAlbum] = useState('Semua'); 
   const [zoomLevel, setZoomLevel] = useState(3);
   const [activePhotoIndex, setActivePhotoIndex] = useState(null);
+  const [isCommentsExpanded, setIsCommentsExpanded] = useState(false);
 
   // Comments state
   const [comments, setComments] = useState([]);
@@ -56,6 +57,7 @@ export default function GalleryClient({ pageType = 'home' }) {
   // Fetch comments when active photo changes
   useEffect(() => {
     if (activePhotoIndex !== null && displayedPhotos[activePhotoIndex]) {
+      setIsCommentsExpanded(false); // Reset posisi komentar saat ganti foto
       const fetchComments = async () => {
         setCommentsLoading(true);
         try {
@@ -386,9 +388,18 @@ export default function GalleryClient({ pageType = 'home' }) {
             </div>
 
             {/* RIGHT / BOTTOM: Comments Section */}
-            <div className="w-full md:w-[350px] lg:w-[400px] h-[40vh] md:h-full bg-white flex flex-col border-t md:border-t-0 md:border-l border-gray-100 relative z-50 rounded-t-2xl md:rounded-none mt-[-20px] md:mt-0 transition-all">
+            <div className={`w-full md:w-[350px] lg:w-[400px] ${isCommentsExpanded ? 'h-[80vh]' : 'h-[40vh]'} md:h-full bg-white flex flex-col border-t md:border-t-0 md:border-l border-gray-100 relative z-50 rounded-t-3xl md:rounded-none mt-[-20px] md:mt-0 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] shadow-[0_-10px_40px_rgba(0,0,0,0.2)] md:shadow-none`}>
+               
+               {/* Mobile Drag Handle */}
+               <div 
+                 className="w-full pt-3 pb-1 flex justify-center md:hidden cursor-pointer shrink-0"
+                 onClick={() => setIsCommentsExpanded(!isCommentsExpanded)}
+               >
+                 <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+               </div>
+
                {/* IG Style Post Author Header */}
-               <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white shrink-0 md:rounded-tr-2xl">
+               <div className="px-4 pb-4 pt-2 md:pt-4 md:pb-4 border-b border-gray-100 flex items-center justify-between bg-white shrink-0 md:rounded-tr-2xl">
                  <div className="flex items-center gap-3">
                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200">
                      <User size={14} className="text-gray-500" />
@@ -467,6 +478,7 @@ export default function GalleryClient({ pageType = 'home' }) {
                          placeholder="Tambahkan komentar..."
                          value={commentText}
                          onChange={(e) => setCommentText(e.target.value)}
+                         onFocus={() => { if(window.innerWidth < 768) setIsCommentsExpanded(true); }}
                          className="w-full text-[16px] md:text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-3 pr-12 outline-none focus:border-black focus:bg-white transition-all resize-none h-[80px]"
                          maxLength={200}
                          onKeyDown={(e) => {
