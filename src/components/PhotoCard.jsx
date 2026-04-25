@@ -1,6 +1,7 @@
 'use client';
 
 import { Heart, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function PhotoCard({ photo, onToggleFavorite, onDelete, onClick }) {
   // Extract album name gracefully
@@ -48,7 +49,14 @@ export default function PhotoCard({ photo, onToggleFavorite, onDelete, onClick }
           {photo.caption && (
             <p className="text-black text-xs sm:text-sm leading-relaxed mb-1.5 line-clamp-2 w-full">{photo.caption}</p>
           )}
-          <div className="mt-auto pt-1 w-full flex justify-end">
+          <div className="mt-auto pt-1 w-full flex justify-between items-center">
+            <span className="text-[10px] text-gray-400 font-medium z-20">
+              {photo.username && photo.userId ? (
+                <>By <Link href={`/profile/${photo.userId}`} className="hover:text-blue-600 hover:underline transition-colors">{photo.username}</Link></>
+              ) : photo.username ? (
+                `By ${photo.username}`
+              ) : ''}
+            </span>
             <p className="text-[10px] text-gray-400">
               {new Date(photo.createdAt).toLocaleDateString('en-US', {
                 year: 'numeric',

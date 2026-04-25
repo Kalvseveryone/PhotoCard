@@ -139,7 +139,7 @@ export default function StoryViewer({ compact = false }) {
             <div className="flex items-center gap-3 sm:gap-4">
               <img src={activeStory.url} className="w-10 h-10 rounded-full object-cover border border-white/50" />
               <div className="text-white">
-                <p className="font-medium text-sm">Story Kita</p>
+                <p className="font-medium text-sm">{activeStory.username || 'User'}</p>
                 <CountdownTimer expiredAt={activeStory.expiredAt} onExpire={() => setActiveIndex(null)} />
               </div>
             </div>

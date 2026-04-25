@@ -95,6 +95,9 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
 
       const res = await fetch('/api/upload', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: formData,
       });
 

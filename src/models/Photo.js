@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 // Note: Ensure Album model is loaded so populate works
 import './Album';
+import './User';
 
 const PhotoSchema = new mongoose.Schema({
   url: {
@@ -28,6 +29,13 @@ const PhotoSchema = new mongoose.Schema({
   albumId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Album',
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  username: {
+    type: String,
   },
   expiredAt: {
     type: Date,

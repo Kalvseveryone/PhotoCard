@@ -3,10 +3,18 @@ import cloudinary from '@/lib/cloudinary';
 import dbConnect from '@/lib/db';
 import Photo from '@/models/Photo';
 import Album from '@/models/Album';
+import { verifyToken } from '@/lib/auth';
 
 export async function POST(request) {
   try {
     await dbConnect();
+    
+    // Auth Check
+    const decoded = verifyToken(request);
+    if (!decoded) {
+      return NextResponse.json({ error: 'Unauthorized. Silakan login terlebih dahulu.' }, { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file');
     const caption = formData.get('caption') || '';
@@ -53,6 +61,8 @@ export async function POST(request) {
       caption: caption,
       type: type,
       albumId: resolvedAlbumId,
+      userId: decoded.userId,
+      username: decoded.username,
       expiredAt: expiredAt,
     });
 
