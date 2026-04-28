@@ -28,6 +28,8 @@ export default function ChatClient() {
   const [sending, setSending] = useState(false);
 
   const messagesEndRef = useRef(null);
+  const scrollContainerRef = useRef(null);
+  const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
 
   // Initialize Auth
   useEffect(() => {
@@ -110,10 +112,19 @@ export default function ChatClient() {
     return () => clearInterval(interval);
   }, [currentUser, activeConversationId]);
 
-  // Auto scroll
+  // Handle Scroll to Bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (shouldScrollToBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, shouldScrollToBottom]);
+
+  // Monitor user scrolling to toggle auto-scroll
+  const handleScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+    setShouldScrollToBottom(isAtBottom);
+  };
 
   // Send Message
   const handleSend = async (e) => {
@@ -216,8 +227,8 @@ export default function ChatClient() {
           </div>
         ) : (
           <>
-            {/* Header Chat Aktif */}
-            <div className="h-[64px] bg-white border-b border-gray-100 flex items-center px-4 shrink-0 gap-3">
+            {/* Header Chat Aktif - Fixed Position */}
+            <div className="absolute top-0 left-0 right-0 z-30 h-[64px] bg-white border-b border-gray-100 flex items-center px-4 shrink-0 gap-3">
               <button className="md:hidden p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full" onClick={() => router.push('/chat')}>
                 <ArrowLeft size={20} />
               </button>
@@ -229,15 +240,25 @@ export default function ChatClient() {
                 )}
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-sm text-gray-900 cursor-pointer hover:underline" onClick={() => router.push(`/profile/${activeChatData?.otherUser?._id}`)}>
+                <span className="font-bold text-sm text-gray-900 leading-tight">
                   {activeChatData?.otherUser?.name || activeChatData?.otherUser?.username || 'User'}
                 </span>
-                {/* Online indicator could be added here later */}
+                <div className="flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-[10px] text-green-600 font-bold uppercase tracking-wider">Online</span>
+                </div>
               </div>
             </div>
 
+            {/* Spacer for Absolute Header */}
+            <div className="h-[64px] shrink-0"></div>
+
             {/* Area Pesan */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div 
+              ref={scrollContainerRef}
+              onScroll={handleScroll}
+              className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth"
+            >
               {loadingMessages ? (
                 <div className="flex justify-center p-4"><div className="animate-spin w-6 h-6 border-2 border-gray-300 border-t-black rounded-full"></div></div>
               ) : (

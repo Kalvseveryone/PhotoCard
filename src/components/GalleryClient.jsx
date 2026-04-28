@@ -358,9 +358,9 @@ export default function GalleryClient({ pageType = 'home' }) {
           <div className="relative w-full h-full max-w-7xl flex flex-col md:flex-row bg-gray-900 md:rounded-2xl overflow-hidden shadow-2xl">
             
             {/* Header Actions - Floating over photo area */}
-            <div className={`absolute top-4 left-0 w-full md:w-[calc(100%-350px)] lg:w-[calc(100%-400px)] px-4 sm:px-6 flex justify-between items-start z-50 pointer-events-none transition-opacity duration-300 ${isCommentsExpanded ? 'opacity-0 md:opacity-100 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
-              <div className="text-left bg-black/40 backdrop-blur px-4 py-2 rounded-lg border border-white/10 shadow-lg max-w-[60%] pointer-events-auto">
-                <p className="text-white font-bold text-sm tracking-wide uppercase line-clamp-1">
+            <div className={`absolute top-0 left-0 w-full md:w-[calc(100%-350px)] lg:w-[calc(100%-400px)] px-4 py-3 sm:py-4 sm:px-6 flex justify-between items-center z-50 transition-opacity duration-300 bg-gradient-to-b from-black/80 to-transparent pointer-events-none`}>
+              <div className="text-left bg-black/20 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-white/10 shadow-lg max-w-[50%] pointer-events-auto">
+                <p className="text-white font-bold text-[10px] sm:text-xs tracking-widest uppercase line-clamp-1">
                   {displayedPhotos[activePhotoIndex].albumId?.name || displayedPhotos[activePhotoIndex].album || 'Gallery'}
                 </p>
               </div>
@@ -389,10 +389,10 @@ export default function GalleryClient({ pageType = 'home' }) {
                 {/* Mobile close button (hides on md and up) */}
                 <button 
                   onClick={() => setActivePhotoIndex(null)} 
-                  className="p-3 text-white hover:text-black transition-colors bg-black/40 hover:bg-white rounded-full border border-white/10 backdrop-blur-sm shadow-xl md:hidden"
+                  className="p-2 sm:p-3 text-white hover:text-black transition-colors bg-black/40 hover:bg-white rounded-full border border-white/10 backdrop-blur-sm shadow-xl md:hidden"
                   title="Tutup"
                 >
-                  <X size={20} />
+                  <X size={18} />
                 </button>
               </div>
             </div>
@@ -418,8 +418,8 @@ export default function GalleryClient({ pageType = 'home' }) {
                 </button>
               )}
 
-              {/* Image */}
-              <div className={`relative w-full ${isCommentsExpanded ? 'h-[25vh]' : 'h-[60vh]'} md:h-full flex items-center justify-center mt-16 md:mt-0 px-2 sm:px-12 transition-all duration-300`}>
+              {/* Image Container */}
+              <div className={`relative w-full ${isCommentsExpanded ? 'h-[25vh]' : 'h-[55vh]'} md:h-full flex items-center justify-center mt-12 md:mt-0 px-2 sm:px-12 transition-all duration-300`}>
                 <img 
                   src={displayedPhotos[activePhotoIndex].url} 
                   className="max-w-full max-h-full object-contain rounded-md shadow-2xl" 
@@ -438,14 +438,16 @@ export default function GalleryClient({ pageType = 'home' }) {
             </div>
 
             {/* RIGHT / BOTTOM: Comments Section */}
-            <div className={`w-full md:w-[350px] lg:w-[400px] ${isCommentsExpanded ? 'h-[80vh]' : 'h-[40vh]'} md:h-full bg-white flex flex-col border-t md:border-t-0 md:border-l border-gray-100 relative z-50 rounded-t-3xl md:rounded-none mt-[-20px] md:mt-0 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] shadow-[0_-10px_40px_rgba(0,0,0,0.2)] md:shadow-none`}>
+            <div className={`w-full md:w-[350px] lg:w-[400px] ${isCommentsExpanded ? 'h-[80vh]' : 'h-[40vh]'} md:h-full bg-white flex flex-col border-t md:border-t-0 md:border-l border-gray-100 relative z-50 rounded-t-3xl md:rounded-none mt-[-20px] md:mt-0 transition-all duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] md:shadow-none`}>
                
-               {/* Mobile Drag Handle */}
-               <div 
-                 className="w-full pt-3 pb-1 flex justify-center md:hidden cursor-pointer shrink-0"
-                 onClick={() => setIsCommentsExpanded(!isCommentsExpanded)}
-               >
-                 <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+               {/* Mobile Header */}
+               <div className="w-full pt-4 pb-2 flex justify-center md:hidden shrink-0 border-b border-gray-50">
+                 <button 
+                   onClick={() => setIsCommentsExpanded(!isCommentsExpanded)}
+                   className="px-6 py-1.5 bg-gray-100 rounded-full text-[10px] font-bold text-gray-500 uppercase tracking-widest hover:bg-gray-200 transition-colors"
+                 >
+                   {isCommentsExpanded ? 'Sembunyikan Komentar' : 'Lihat Semua Komentar'}
+                 </button>
                </div>
 
                {/* IG Style Post Author Header */}
@@ -478,8 +480,7 @@ export default function GalleryClient({ pageType = 'home' }) {
                  </button>
                </div>
 
-               {/* Comments Header */}
-               <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2 bg-gray-50 shrink-0">
+               <div id="comments-top" className="px-4 py-3 border-b border-gray-100 flex items-center gap-2 bg-gray-50 shrink-0">
                  <MessageSquare size={14} className="text-gray-500" />
                  <h3 className="font-bold text-xs text-gray-600">Komentar ({comments.length})</h3>
                </div>
