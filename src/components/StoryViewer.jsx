@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { X, Trash2, ChevronLeft, ChevronRight, Home } from 'lucide-react';
+import { X, Trash2, ChevronLeft, ChevronRight, Home, Heart, Send } from 'lucide-react';
 import Link from 'next/link';
 
 function CountdownTimer({ expiredAt, onExpire }) {
@@ -52,6 +52,13 @@ export default function StoryViewer({ compact = false }) {
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [isReplying, setIsReplying] = useState(false);
+  const [userToken, setUserToken] = useState(null);
+
+  useEffect(() => {
+    setUserToken(localStorage.getItem('token'));
+  }, []);
 
   useEffect(() => {
     const fetchStories = async () => {
@@ -78,6 +85,59 @@ export default function StoryViewer({ compact = false }) {
       await fetch(`/api/photos/${id}`, { method: 'DELETE' });
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleLikeStory = async (id) => {
+    if (!userToken) return;
+    const currentUserId = JSON.parse(atob(userToken.split('.')[1])).userId;
+    
+    setStories(stories.map(s => {
+      if (s._id === id) {
+        const isLiked = s.likes?.includes(currentUserId);
+        const newLikes = isLiked 
+          ? s.likes.filter(uid => uid !== currentUserId)
+          : [...(s.likes || []), currentUserId];
+        return { ...s, likes: newLikes };
+      }
+      return s;
+    }));
+
+    try {
+      await fetch(`/api/story/${id}/like`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userToken}`
+        }
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleReplyStory = async (e) => {
+    e.preventDefault();
+    if (!replyText.trim() || !userToken) return;
+
+    setIsReplying(true);
+    try {
+      const res = await fetch(`/api/story/${activeStory._id}/reply`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userToken}`
+        },
+        body: JSON.stringify({ text: replyText })
+      });
+      if (res.ok) {
+        setReplyText('');
+        alert('Balasan story terkirim ke chat!');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsReplying(false);
     }
   };
 
@@ -175,11 +235,39 @@ export default function StoryViewer({ compact = false }) {
           {/* Story Content */}
           <div className="relative max-w-lg w-full h-[85vh] sm:h-[80vh] bg-black rounded-xl sm:rounded-3xl overflow-hidden mt-10 shadow-[0_0_50px_rgba(255,255,255,0.05)]">
             <img src={activeStory.url} className="w-full h-full object-contain" />
-            {activeStory.caption && (
-              <div className="absolute bottom-0 w-full p-6 bg-gradient-to-t from-black via-black/80 to-transparent">
-                <p className="text-white text-lg font-serif text-center">{activeStory.caption}</p>
+            
+            {/* Story Interactions */}
+            <div className="absolute bottom-0 w-full p-6 bg-gradient-to-t from-black via-black/80 to-transparent flex flex-col gap-4">
+              {activeStory.caption && (
+                <p className="text-white text-lg font-serif text-center mb-2">{activeStory.caption}</p>
+              )}
+              
+              <div className="flex items-center gap-3">
+                <form onSubmit={handleReplyStory} className="flex-1 flex gap-2">
+                  <input 
+                    type="text" 
+                    placeholder="Balas story..." 
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    className="flex-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-2 text-white text-sm outline-none focus:bg-white/20 transition-all"
+                  />
+                  <button 
+                    type="submit"
+                    disabled={!replyText.trim() || isReplying}
+                    className="p-2 bg-white text-black rounded-full hover:scale-105 disabled:opacity-50 transition-all"
+                  >
+                    {isReplying ? <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <Send size={18} />}
+                  </button>
+                </form>
+                
+                <button 
+                  onClick={() => handleLikeStory(activeStory._id)}
+                  className={`p-2 rounded-full transition-all ${activeStory.likes?.includes(userToken ? JSON.parse(atob(userToken.split('.')[1])).userId : null) ? 'text-red-500 bg-white/20' : 'text-white bg-white/10'}`}
+                >
+                  <Heart size={24} className={activeStory.likes?.includes(userToken ? JSON.parse(atob(userToken.split('.')[1])).userId : null) ? 'fill-current animate-heartbeat' : ''} />
+                </button>
               </div>
-            )}
+            </div>
           </div>
         </div>
       )}

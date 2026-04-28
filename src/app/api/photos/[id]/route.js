@@ -15,7 +15,7 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ error: 'isFavorite field is required' }, { status: 400 });
     }
 
-    const photo = await Photo.findByIdAndUpdate(id, { isFavorite: body.isFavorite }, { new: true });
+    const photo = await Photo.findByIdAndUpdate(id, { isFavorite: body.isFavorite }, { returnDocument: 'after' });
     
     if (!photo) {
       return NextResponse.json({ error: 'Photo not found' }, { status: 404 });

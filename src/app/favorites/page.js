@@ -1,8 +1,8 @@
 import GalleryClient from '@/components/GalleryClient';
 
 export const metadata = {
-  title: 'Favorites - KalUpdateApp',
-  description: 'Your favorite memories.',
+  title: 'Liked Photos - KalUpdateApp',
+  description: 'Your liked memories.',
 };
 
 export default function FavoritesPage() {

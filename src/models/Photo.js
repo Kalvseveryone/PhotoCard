@@ -17,10 +17,10 @@ const PhotoSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
-  isFavorite: {
-    type: Boolean,
-    default: false,
-  },
+  likes: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  }],
   type: {
     type: String,
     enum: ['gallery', 'story'],

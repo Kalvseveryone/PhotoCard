@@ -247,13 +247,21 @@ export default function ChatClient() {
                   return (
                     <div key={msg._id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
                       <div 
-                        className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm shadow-sm ${
+                        className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm shadow-sm flex flex-col gap-2 ${
                           isMine 
                             ? 'bg-black text-white rounded-br-none' 
                             : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
                         }`}
                       >
-                        {msg.text}
+                        {msg.type === 'story_reply' && msg.storyPreview && (
+                          <div className="relative w-32 h-48 rounded-lg overflow-hidden border border-white/20 mb-1">
+                            <img src={msg.storyPreview} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/40 flex items-end p-2">
+                              <span className="text-[10px] text-white font-bold uppercase">Membalas Story</span>
+                            </div>
+                          </div>
+                        )}
+                        <span>{msg.text}</span>
                       </div>
                       <div className="flex items-center gap-1 mt-1 px-1">
                         <span className="text-[9px] text-gray-400 font-medium">

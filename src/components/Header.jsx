@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Camera, LogOut, User } from 'lucide-react';
+import { Camera, LogOut, User, Bell } from 'lucide-react';
+import NotificationSystem from './NotificationSystem';
 
 export default function Header() {
   const [user, setUser] = useState(null);
@@ -37,9 +38,12 @@ export default function Header() {
         </Link>
         <nav className="flex items-center gap-4 sm:gap-6 w-full sm:w-auto justify-end">
           <Link href="/" className="text-xs sm:text-sm font-medium text-gray-600 hover:text-black transition-colors uppercase tracking-wider">Gallery</Link>
-          <Link href="/favorites" className="text-xs sm:text-sm font-medium text-gray-600 hover:text-black transition-colors uppercase tracking-wider">Favorites</Link>
+          <Link href="/favorites" className="text-xs sm:text-sm font-medium text-gray-600 hover:text-black transition-colors uppercase tracking-wider">Liked</Link>
           {user && (
-            <Link href="/chat" className="text-xs sm:text-sm font-medium text-gray-600 hover:text-black transition-colors uppercase tracking-wider">Chat</Link>
+            <>
+              <Link href="/chat" className="text-xs sm:text-sm font-medium text-gray-600 hover:text-black transition-colors uppercase tracking-wider">Chat</Link>
+              <NotificationSystem />
+            </>
           )}
           
           {user ? (

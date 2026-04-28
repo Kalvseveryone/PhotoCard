@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import PhotoCard from './PhotoCard';
 import UploadModal from './UploadModal';
 import Link from 'next/link';
-import { ImagePlus, ZoomIn, ZoomOut, X, Trash2, ChevronLeft, ChevronRight, Download, MessageSquare, Send, User } from 'lucide-react';
+import { ImagePlus, ZoomIn, ZoomOut, X, Trash2, ChevronLeft, ChevronRight, Download, MessageSquare, Send, User, MessageCircle } from 'lucide-react';
+import { PhotoCardSkeleton, CommentSkeleton } from './Skeleton';
 
 // Helper function for relative time formatting
 function timeAgo(dateString) {
@@ -53,6 +54,71 @@ export default function GalleryClient({ pageType = 'home' }) {
       commentsEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [comments]);
+
+  // Set initial zoom based on screen size
+  useEffect(() => {
+    if (window.innerWidth < 640) {
+      setZoomLevel(2);
+    } else if (window.innerWidth < 1024) {
+      setZoomLevel(3);
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      try {
+        const res = await fetch('/api/photos');
+        const data = await res.json();
+        if (data.success) {
+          setPhotos(data.photos);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPhotos();
+  }, []);
+
+  const uniqueAlbums = [...new Set(photos.map(p => {
+    if (p.albumId && p.albumId.name) return p.albumId.name;
+    if (p.album) return p.album;
+    return 'Tanpa Album';
+  }))];
+  
+  const albumTabs = ['Semua', ...uniqueAlbums.filter(Boolean)];
+
+  const currentUserId = userToken ? JSON.parse(atob(userToken.split('.')[1])).userId : null;
+
+  const displayedPhotos = photos.map(p => ({
+    ...p,
+    isLiked: p.likes?.includes(currentUserId)
+  })).filter(p => {
+    const pAlbumName = p.albumId && p.albumId.name ? p.albumId.name : (p.album || 'Tanpa Album');
+    if (pageType === 'favorites' && !p.isLiked) return false;
+    if (selectedAlbum !== 'Semua' && pAlbumName !== selectedAlbum) return false;
+    return true;
+  });
+
+  // Check hash on load to open specific photo from notification
+  useEffect(() => {
+    if (!loading && photos.length > 0) {
+      const hash = window.location.hash;
+      if (hash && hash.startsWith('#photo-')) {
+        const photoId = hash.replace('#photo-', '');
+        const index = displayedPhotos.findIndex(p => p._id === photoId);
+        if (index !== -1) {
+          setActivePhotoIndex(index);
+          // Scroll to element
+          setTimeout(() => {
+            const el = document.getElementById(`photo-${photoId}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 500);
+        }
+      }
+    }
+  }, [loading, photos.length, displayedPhotos]);
 
   // Fetch comments when active photo changes
   useEffect(() => {
@@ -112,42 +178,35 @@ export default function GalleryClient({ pageType = 'home' }) {
     }
   };
 
-  // Set initial zoom based on screen size
-  useEffect(() => {
-    if (window.innerWidth < 640) {
-      setZoomLevel(2);
-    } else if (window.innerWidth < 1024) {
-      setZoomLevel(3);
+  const handleLike = async (id) => {
+    if (!userToken) {
+      window.location.href = '/login';
+      return;
     }
-  }, []);
 
-  useEffect(() => {
-    const fetchPhotos = async () => {
-      try {
-        const res = await fetch('/api/photos');
-        const data = await res.json();
-        if (data.success) {
-          setPhotos(data.photos);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+    const currentUserId = JSON.parse(atob(userToken.split('.')[1])).userId;
+    
+    setPhotos(photos.map(p => {
+      if (p._id === id) {
+        const isLiked = p.likes?.includes(currentUserId);
+        const newLikes = isLiked 
+          ? p.likes.filter(uid => uid !== currentUserId)
+          : [...(p.likes || []), currentUserId];
+        return { ...p, likes: newLikes, isLiked: !isLiked };
       }
-    };
-    fetchPhotos();
-  }, []);
+      return p;
+    }));
 
-  const handleToggleFavorite = async (id, currentStatus) => {
-    setPhotos(photos.map(p => p._id === id ? { ...p, isFavorite: !currentStatus } : p));
     try {
-      await fetch(`/api/photos/${id}`, {
+      await fetch(`/api/photos/${id}/like`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isFavorite: !currentStatus })
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userToken}`
+        }
       });
     } catch (err) {
-      setPhotos(photos.map(p => p._id === id ? { ...p, isFavorite: currentStatus } : p));
+      console.error(err);
     }
   };
 
@@ -178,7 +237,6 @@ export default function GalleryClient({ pageType = 'home' }) {
 
   const handleDownload = async (url, caption) => {
     try {
-      // Create a filename based on caption or timestamp
       const filename = caption 
         ? caption.replace(/[^a-z0-9]/gi, '_').toLowerCase() 
         : `KalUpdateApp_Memory_${Date.now()}`;
@@ -198,21 +256,6 @@ export default function GalleryClient({ pageType = 'home' }) {
       alert("Maaf, terjadi kesalahan saat mencoba mengunduh gambar.");
     }
   };
-
-  const uniqueAlbums = [...new Set(photos.map(p => {
-    if (p.albumId && p.albumId.name) return p.albumId.name;
-    if (p.album) return p.album;
-    return 'Tanpa Album';
-  }))];
-  
-  const albumTabs = ['Semua', ...uniqueAlbums.filter(Boolean)];
-
-  const displayedPhotos = photos.filter(p => {
-    const pAlbumName = p.albumId && p.albumId.name ? p.albumId.name : (p.album || 'Tanpa Album');
-    if (pageType === 'favorites' && !p.isFavorite) return false;
-    if (selectedAlbum !== 'Semua' && pAlbumName !== selectedAlbum) return false;
-    return true;
-  });
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 relative">
@@ -269,8 +312,13 @@ export default function GalleryClient({ pageType = 'home' }) {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center py-32 text-gray-400 font-mono text-xs sm:text-sm uppercase tracking-widest animate-pulse">
-          Loading Data...
+        <div 
+          className="grid gap-3 sm:gap-4 transition-all duration-700 ease-in-out items-start" 
+          style={{ gridTemplateColumns: `repeat(${zoomLevel}, minmax(0, 1fr))` }}
+        >
+          {[...Array(6)].map((_, i) => (
+            <PhotoCardSkeleton key={i} />
+          ))}
         </div>
       ) : (
         <>
@@ -287,13 +335,15 @@ export default function GalleryClient({ pageType = 'home' }) {
               style={{ gridTemplateColumns: `repeat(${zoomLevel}, minmax(0, 1fr))` }}
             >
               {displayedPhotos.map((photo, idx) => (
-                <PhotoCard 
-                  key={photo._id} 
-                  photo={photo} 
-                  onToggleFavorite={handleToggleFavorite}
-                  onDelete={handleDelete}
-                  onClick={() => setActivePhotoIndex(idx)}
-                />
+                  <div key={photo._id} id={`photo-${photo._id}`}>
+                    <PhotoCard 
+                      photo={photo} 
+                      onLike={handleLike}
+                      onDelete={handleDelete}
+                      onClick={() => setActivePhotoIndex(idx)}
+                      currentUserId={currentUserId}
+                    />
+                  </div>
               ))}
             </div>
           )}
@@ -308,7 +358,7 @@ export default function GalleryClient({ pageType = 'home' }) {
           <div className="relative w-full h-full max-w-7xl flex flex-col md:flex-row bg-gray-900 md:rounded-2xl overflow-hidden shadow-2xl">
             
             {/* Header Actions - Floating over photo area */}
-            <div className="absolute top-4 left-0 w-full md:w-[calc(100%-350px)] lg:w-[calc(100%-400px)] px-4 sm:px-6 flex justify-between items-start z-50 pointer-events-none">
+            <div className={`absolute top-4 left-0 w-full md:w-[calc(100%-350px)] lg:w-[calc(100%-400px)] px-4 sm:px-6 flex justify-between items-start z-50 pointer-events-none transition-opacity duration-300 ${isCommentsExpanded ? 'opacity-0 md:opacity-100 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
               <div className="text-left bg-black/40 backdrop-blur px-4 py-2 rounded-lg border border-white/10 shadow-lg max-w-[60%] pointer-events-auto">
                 <p className="text-white font-bold text-sm tracking-wide uppercase line-clamp-1">
                   {displayedPhotos[activePhotoIndex].albumId?.name || displayedPhotos[activePhotoIndex].album || 'Gallery'}
@@ -369,7 +419,7 @@ export default function GalleryClient({ pageType = 'home' }) {
               )}
 
               {/* Image */}
-              <div className="relative w-full h-[60vh] md:h-full flex items-center justify-center mt-16 md:mt-0 px-2 sm:px-12">
+              <div className={`relative w-full ${isCommentsExpanded ? 'h-[25vh]' : 'h-[60vh]'} md:h-full flex items-center justify-center mt-16 md:mt-0 px-2 sm:px-12 transition-all duration-300`}>
                 <img 
                   src={displayedPhotos[activePhotoIndex].url} 
                   className="max-w-full max-h-full object-contain rounded-md shadow-2xl" 
@@ -437,13 +487,11 @@ export default function GalleryClient({ pageType = 'home' }) {
                {/* Comments List */}
                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
                   {isCommentsLoading ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-pulse flex space-x-2 items-center">
-                         <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                         <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                         <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                      </div>
-                    </div>
+                     <div className="space-y-4">
+                        {[...Array(3)].map((_, i) => (
+                          <CommentSkeleton key={i} />
+                        ))}
+                     </div>
                   ) : comments.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-gray-400 py-10">
                       <MessageSquare size={32} className="mb-2 opacity-50" />

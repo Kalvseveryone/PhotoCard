@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { User, ImagePlus, ChevronLeft, ChevronRight, X, Trash2, MessageSquare, Download, MessageCircle } from 'lucide-react';
 import PhotoCard from './PhotoCard';
 import { useRouter } from 'next/navigation';
+import { ProfileSkeleton } from './Skeleton';
 
 function TimeAgo({ createdAt }) {
   const [timeStr, setTimeStr] = useState('');
@@ -97,8 +98,38 @@ export default function ProfileClient({ userId }) {
     }
   };
 
+  const handleLike = async (id) => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const currentUserId = JSON.parse(atob(token.split('.')[1])).userId;
+    
+    setPhotos(photos.map(p => {
+      if (p._id === id) {
+        const isLiked = p.likes?.includes(currentUserId);
+        const newLikes = isLiked 
+          ? p.likes.filter(uid => uid !== currentUserId)
+          : [...(p.likes || []), currentUserId];
+        return { ...p, likes: newLikes, isLiked: !isLiked };
+      }
+      return p;
+    }));
+
+    try {
+      await fetch(`/api/photos/${id}/like`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   if (loading) {
-    return <div className="min-h-screen flex justify-center py-32 text-gray-400 font-mono text-sm uppercase tracking-widest animate-pulse">Memuat Profil...</div>;
+    return <ProfileSkeleton />;
   }
 
   if (error || !userProfile) {
@@ -186,7 +217,7 @@ export default function ProfileClient({ userId }) {
               <PhotoCard 
                 key={photo._id} 
                 photo={photo} 
-                onToggleFavorite={() => {}} // Disabled di profile view unless implemented
+                onLike={handleLike}
                 onDelete={() => {}} // Disabled di profile view
                 onClick={() => setActivePhotoIndex(idx)}
               />

@@ -15,6 +15,14 @@ const MessageSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  type: {
+    type: String,
+    enum: ['text', 'story_reply'],
+    default: 'text'
+  },
+  storyPreview: {
+    type: String,
+  },
   status: {
     type: String,
     enum: ['sent', 'delivered', 'read'],

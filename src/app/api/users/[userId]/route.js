@@ -28,7 +28,7 @@ export async function GET(request, { params }) {
 
     // Jika mengakses profile orang lain (bukan /me), sembunyikan email untuk keamanan
     let userData = user.toObject();
-    if (params.userId !== 'me') {
+    if (userId !== 'me') {
       delete userData.email;
     }
 
