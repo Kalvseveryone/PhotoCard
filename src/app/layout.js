@@ -3,7 +3,7 @@ import AudioPlayer from '@/components/AudioPlayer';
 import Header from '@/components/Header';
 
 export const metadata = {
-  title: 'KalUpdateApp',
+  title: 'MemoriesOfMutiaHaekal',
   description: 'Minimalist Photo Gallery and Stories',
 };
 
@@ -15,8 +15,8 @@ export default function RootLayout({ children }) {
         <main className="flex-grow">
           {children}
         </main>
-        {/* Optional Music Player */}
-        {/* <AudioPlayer /> */}
+        {/* Background Music Player */}
+        <AudioPlayer />
       </body>
     </html>
   );

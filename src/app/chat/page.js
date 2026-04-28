@@ -2,7 +2,7 @@ import ChatClient from '@/components/ChatClient';
 import { Suspense } from 'react';
 
 export const metadata = {
-  title: 'Chat - KalUpdateApp',
+  title: 'Chat - MemoriesOfMutiaHaekal',
   description: 'Realtime chat',
 };
 

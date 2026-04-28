@@ -34,7 +34,7 @@ export default function Header() {
           <div className="bg-black text-white p-1.5 sm:p-2 rounded-lg group-hover:bg-gray-800 transition-colors">
             <Camera size={18} />
           </div>
-          <span className="font-bold text-lg sm:text-xl tracking-tight text-black">KalUpdateApp</span>
+          <span className="font-bold text-lg sm:text-xl tracking-tight text-black">MemoriesOfMutiaHaekal</span>
         </Link>
         <nav className="flex items-center gap-4 sm:gap-6 w-full sm:w-auto justify-end">
           <Link href="/" className="text-xs sm:text-sm font-medium text-gray-600 hover:text-black transition-colors uppercase tracking-wider">Gallery</Link>

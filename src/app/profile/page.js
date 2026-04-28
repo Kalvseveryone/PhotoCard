@@ -1,7 +1,7 @@
 import ProfileClient from '@/components/ProfileClient';
 
 export const metadata = {
-  title: 'My Profile - KalUpdateApp',
+  title: 'My Profile - MemoriesOfMutiaHaekal',
 };
 
 export default function PrivateProfilePage() {

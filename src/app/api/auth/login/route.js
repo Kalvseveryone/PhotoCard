@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'kalupdateapp_super_secret_jwt_key_2026_xyz!';
+const JWT_SECRET = process.env.JWT_SECRET || 'memoriesofmutiahaekal_super_secret_jwt_key_2026_xyz!';
 
 export async function POST(request) {
   try {

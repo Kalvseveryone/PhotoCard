@@ -2,7 +2,7 @@ import GalleryClient from '@/components/GalleryClient';
 import StoryViewer from '@/components/StoryViewer';
 
 export const metadata = {
-  title: 'Gallery - KalUpdateApp',
+  title: 'Gallery - MemoriesOfMutiaHaekal',
   description: 'Minimalist Photo Gallery',
 };
 

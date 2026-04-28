@@ -1,7 +1,7 @@
 import ProfileClient from '@/components/ProfileClient';
 
 export const metadata = {
-  title: 'User Profile - KalUpdateApp',
+  title: 'User Profile - MemoriesOfMutiaHaekal',
 };
 
 export default async function PublicProfilePage({ params }) {

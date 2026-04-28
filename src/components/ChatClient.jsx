@@ -160,7 +160,7 @@ export default function ChatClient() {
   const activeChatData = conversations.find(c => c._id === activeConversationId);
 
   return (
-    <div className="max-w-6xl mx-auto h-full flex bg-white shadow-sm border-x border-gray-100">
+    <div className="w-full h-full flex bg-white">
       
       {/* SIDEBAR - DAFTAR CHAT */}
       <div className={`w-full md:w-[350px] border-r border-gray-100 flex flex-col ${activeConversationId ? 'hidden md:flex' : 'flex'}`}>

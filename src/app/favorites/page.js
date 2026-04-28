@@ -1,7 +1,7 @@
 import GalleryClient from '@/components/GalleryClient';
 
 export const metadata = {
-  title: 'Liked Photos - KalUpdateApp',
+  title: 'Liked Photos - MemoriesOfMutiaHaekal',
   description: 'Your liked memories.',
 };
 

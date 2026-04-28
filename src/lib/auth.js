@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'kalupdateapp_super_secret_jwt_key_2026_xyz!';
+const JWT_SECRET = process.env.JWT_SECRET || 'memoriesofmutiahaekal_super_secret_jwt_key_2026_xyz!';
 
 export function verifyToken(req) {
   try {

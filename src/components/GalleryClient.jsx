@@ -239,7 +239,7 @@ export default function GalleryClient({ pageType = 'home' }) {
     try {
       const filename = caption 
         ? caption.replace(/[^a-z0-9]/gi, '_').toLowerCase() 
-        : `KalUpdateApp_Memory_${Date.now()}`;
+        : `MemoriesOfMutiaHaekal_Memory_${Date.now()}`;
         
       const res = await fetch(url);
       const blob = await res.blob();

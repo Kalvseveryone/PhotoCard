@@ -1,7 +1,7 @@
 import StoryViewer from '@/components/StoryViewer';
 
 export const metadata = {
-  title: 'Live Stories - KalUpdateApp',
+  title: 'Live Stories - MemoriesOfMutiaHaekal',
   description: 'View 24h stories.',
 };
 
